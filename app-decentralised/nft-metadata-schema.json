@@ -1,0 +1,12 @@
+{
+  "image": "url",
+  "external_url": "url",
+  "description": "string (Markdown supported)",
+  "attributes": [
+    {
+      "display_type": "trait (optional, for non-string values)",
+      "trait_type": "string",
+      "value": "any"
+    }
+  ]
+}

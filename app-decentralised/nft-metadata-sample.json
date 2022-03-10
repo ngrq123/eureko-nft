@@ -1,0 +1,49 @@
+{
+  "image": "https://gateway.pinata.cloud/ipfs/path/to/nft",
+  "external_url": "https://example.com/path/to/nft",
+  "description": "A tier 1 scratch card token",
+  "attributes": [
+    {
+      "display_type": "boost_number",
+      "trait_type": "Number of Portions",
+      "value": 5
+    },
+    {
+      "display_type": "boost_percentage",
+      "trait_type": "Percentage Scratched",
+      "value": 0.0
+    },
+    {
+      "trait_type": "Portion 1 Scratched",
+      "value": false
+    },
+    {
+      "trait_type": "Portion 2 Scratched",
+      "value": false
+    },
+    {
+      "trait_type": "Portion 3 Scratched",
+      "value": false
+    },
+    {
+      "trait_type": "Portion 4 Scratched",
+      "value": true
+    },
+    {
+      "trait_type": "Portion 1 URL",
+      "value": "https://example.com/path/to/nft/id/unscratched/portion/1"
+    },
+    {
+      "trait_type": "Portion 2 URL",
+      "value": "https://example.com/path/to/nft/id/unscratched/portion/2"
+    },
+    {
+      "trait_type": "Portion 3 URL",
+      "value": "https://example.com/path/to/nft/id/unscratched/portion/3"
+    },
+    {
+      "trait_type": "Portion 4 URL",
+      "value": "https://example.com/path/to/nft/id/scratched/portion/4"
+    }
+  ]
+}
