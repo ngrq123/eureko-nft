@@ -62,4 +62,24 @@ def load_image(url):
 
 
 def generate_nft(images):
-    return cv2.hconcat(images)
+    nrow = math.ceil(math.sqrt(len(images)))
+    print(nrow)
+    img_idx = 0
+    nft = np.zeros((0, images[0].shape[1] * nrow, 3), dtype=np.uint8)
+    
+    for _ in range(nrow):
+        if img_idx < len(images):
+            row_img = images[img_idx]
+            img_idx = img_idx + 1
+            for _ in range(nrow-1):
+                if img_idx < len(images):
+                    row_img = cv2.hconcat([row_img, images[img_idx]])
+                    img_idx = img_idx + 1
+            print(nft.shape, row_img.shape)
+            if nft.shape[1] != row_img.shape[1]:
+                x_diff = nft.shape[0] - row_img.shape[0]
+                y_diff = nft.shape[1] - row_img.shape[1]
+                row_img = cv2.hconcat([row_img, 255 * np.ones((x_diff, y_diff, 3), dtype=np.uint8)])
+            nft = cv2.vconcat([nft, row_img])
+    
+    return nft
