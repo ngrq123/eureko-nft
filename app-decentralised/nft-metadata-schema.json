@@ -1,6 +1,6 @@
 {
   "image": "url",
-  "external_url": "url",
+  "name": "string",
   "description": "string (Markdown supported)",
   "attributes": [
     {

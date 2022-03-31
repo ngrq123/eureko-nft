@@ -1,6 +1,6 @@
 {
   "image": "https://gateway.pinata.cloud/ipfs/path/to/nft",
-  "external_url": "https://example.com/path/to/nft",
+  "name": "Scratch Card",
   "description": "A tier 1 scratch card token",
   "attributes": [
     {
