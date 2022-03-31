@@ -4,14 +4,19 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
-contract EurekoNFT is ERC721, Ownable {
+contract EurekoNFT is ERC721, Ownable, IERC2981 {
     mapping(uint256 => string) private _tokenURIs; // Token id to token URI
-    string private defaultURI = ""; 
+    address private _owner;
 
     bool public isReleased; 
 
-    constructor() ERC721("EurekoNFT", "ERK") { }
+    constructor(
+        address owner
+    ) ERC721("EurekoNFT", "ERK") {
+        _owner = owner;
+    }
 
     function mint(address recipient, uint256 tokenId, string memory uri)
         returns (uint256)
@@ -22,6 +27,12 @@ contract EurekoNFT is ERC721, Ownable {
         
         _safeMint(recipient, tokenId);
         return tokenId; // Need to return id?
+    }
+
+    function royaltyInfo(uint256 tokenId, uint256 salePrice) external view
+        returns (address, uint256)
+    {
+        return(_owner, (salePrice / 100) * 6);
     }
     
     function toggleRelease() external onlyOwner {
@@ -38,6 +49,10 @@ contract EurekoNFT is ERC721, Ownable {
     {
         require(_exists(tokenId), "TOKEN_NOT_EXISTS");
         return string(abi.encodePacked(_tokenURIs[tokenId]));
+    }
+
+    function redeem(address from, uint256 tokenId) {
+        _transferFrom(from, _owner, tokenId);
     }
     
 }
