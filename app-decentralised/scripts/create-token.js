@@ -11,7 +11,7 @@ const contract = require("../artifacts/contracts/EurekoNFT.sol/EurekoNFT.json")
 const contractAddress = process.env.CONTRACT_ADDRESS
 const nftContract = new web3.eth.Contract(contract.abi, contractAddress)
 
-async function mintNFT(tokenId) {
+async function createTokenOne() {
   const nonce = await web3.eth.getTransactionCount(PUBLIC_KEY, 'latest'); // Get latest nonce
 
   // Transaction
@@ -20,7 +20,7 @@ async function mintNFT(tokenId) {
     'to': contractAddress,
     'nonce': nonce,
     'gas': 500000,
-    'data': nftContract.methods.mint(PUBLIC_KEY, tokenId).encodeABI()
+    'data': nftContract.methods.setTokenURI(1, "http://example.com").encodeABI()
   };
 
   const signPromise = web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
@@ -49,6 +49,4 @@ async function mintNFT(tokenId) {
     });
 }
 
-mintNFT(
-  1
-)
+createTokenOne();
