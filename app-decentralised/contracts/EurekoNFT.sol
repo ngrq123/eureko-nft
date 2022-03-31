@@ -52,7 +52,7 @@ contract EurekoNFT is ERC721, Ownable, IERC2981 {
     }
 
     function redeem(address from, uint256 tokenId) {
-        _transferFrom(from, _owner, tokenId);
+        safeTransferFrom(from, _owner, tokenId);
     }
     
 }
