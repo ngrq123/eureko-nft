@@ -1,6 +1,9 @@
 CREATE TABLE token (
-    id integer PRIMARY KEY,
+    id integer,
     part_id integer,
-    url_unscratched text,
-    url_scratched text
+    token_description text,
+    token_recommended_mint_price integer,
+    url_unscratched text NOT NULL,
+    url_scratched text NOT NULL,
+    PRIMARY KEY (id, part_id)
 );
