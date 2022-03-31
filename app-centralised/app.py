@@ -1,12 +1,17 @@
 import json
 import math
 import os
+from urllib.error import URLError
 
 import cv2
 from flask import Flask
 from flask import jsonify
 import numpy as np
+from pandas import value_counts
+import psycopg2
 import requests
+
+# DATABASE_URL = os.environ['DATABASE_URL']
 
 app = Flask(__name__)
 
@@ -16,6 +21,46 @@ def health():
     res['status'] = 'available'
 
     return jsonify(res)
+
+@app.route('/create/<int:token_id>')
+def create_nft(token_id: int):
+
+    query = f"""
+        SELECT *
+        FROM tokens
+        WHERE id = {token_id}
+        ;
+    """
+    res = execute_query(query)
+    
+    # Test data
+    # res = [
+    #     (1, 1, 'Scratch Card', 'A tier 1 scratch card token', 0.01, 'http://example.com', 'http://example.com'),
+    #     (1, 2, 'Scratch Card', 'A tier 1 scratch card token', 0.01, 'http://example.com', 'http://example.com')
+    # ]
+
+    token_metadata = dict()
+
+    images = [load_image(row[5]) for row in res]
+    nft = generate_nft(images)
+
+    # TODO: Upload NFT and get URL
+    token_metadata['image'] = 'http://example.com'
+    token_metadata['name'] = res[0][2]
+    token_metadata['description'] = res[0][3]
+
+    token_metadata['attributes'] = list()
+    token_metadata['attributes'].append(generate_attribute('Number of Portions', len(res), 'boost_number'))
+    token_metadata['attributes'].append(generate_attribute('Percentage Scratched', 0.0, 'boost_precentage'))
+    token_metadata['attributes'].append(generate_attribute('Recommended Mint Price (ETH)', res[0][4]))
+
+    for idx in range(len(res)):
+        token_metadata['attributes'].append(generate_attribute('Portion ' + str(idx+1) + ' Scratched', False))
+
+    for idx in range(len(res)):
+        token_metadata['attributes'].append(generate_attribute('Portion ' + str(idx+1) + ' URL', res[idx][5]))
+    
+    return jsonify(token_metadata)
 
 
 @app.route('/process/<path:token_hash>')
@@ -81,3 +126,24 @@ def generate_nft(images):
             nft = cv2.vconcat([nft, row_img])
     
     return nft
+
+def execute_query(query):
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+
+    res = None
+    with conn.cursor() as curs:
+        res = curs.fetchall(query)
+
+    conn.close()
+    return res
+
+def generate_attribute(trait_type, value, display_type=None):
+    attr_dict = dict()
+    
+    if display_type:
+        attr_dict['display_type'] = display_type
+
+    attr_dict['trait_type'] = trait_type
+    attr_dict['value'] = value
+    
+    return attr_dict
