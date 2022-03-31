@@ -3,29 +3,41 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-contract EurekoNFT is ERC721URIStorage, Ownable {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
+contract EurekoNFT is ERC721, Ownable {
+    mapping(uint256 => string) private _tokenURIs; // Token id to token URI
+    string private defaultURI = ""; 
 
-    constructor() ERC721("EurekoNFT", "ERK") {}
+    bool public isReleased; 
 
-    function mintNFT(address recipient, string memory tokenURI)
-        public onlyOwner
+    constructor() ERC721("EurekoNFT", "ERK") { }
+
+    function mint(address recipient, uint256 tokenId, string memory uri)
         returns (uint256)
     {
-        // TODO: Change token id to token id in collection
-        _tokenIds.increment();
-
-        uint256 newItemId = _tokenIds.current();
-        _mint(recipient, newItemId);
-        // TODO: Add scratching logic (probabilities)
-        // TODO: Edit NFT metadata (tokenURI) by passing into centralised server when token state changes
-        _setTokenURI(newItemId, tokenURI);
-
-        return newItemId;
+        require(isReleased, "COLLECTION_NOT_RELEASED");
+        require(!_exists(tokenId), "TOKEN_MINTED");
+        require(_tokenURIs[tokenId] != "", "TOKEN_NOT_FOUND");
+        
+        _safeMint(recipient, tokenId);
+        return tokenId; // Need to return id?
     }
+    
+    function toggleRelease() external onlyOwner {
+        // Release/Lock NFT collection for minting
+        isReleased = !isReleased;
+    }
+
+    function setTokenURI(uint256 tokenId, string calldata uri) external onlyOwner {
+        _tokenURIs[tokenId] = uri;
+    } 
+
+    function tokenURI(uint256 tokenId) public view override(ERC721)
+        returns (string memory)
+    {
+        require(_exists(tokenId), "TOKEN_NOT_EXISTS");
+        return string(abi.encodePacked(_tokenURIs[tokenId]));
+    }
+    
 }
