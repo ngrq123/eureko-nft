@@ -121,9 +121,11 @@ def process_nft(token_id: str):
         # No more parts to reveal
         return jsonify(res)
     
+    num_portions = attributes_dict['Number of Portions']
+
     # Scratch NFT
     idx_to_scratch = np.random.randint(0, num_portions)
-    while (not attributes_dict['Portion ' + str(idx+1) + ' Scratched']):
+    while (not attributes_dict['Portion ' + str(idx_to_scratch+1) + ' Scratched']):
         idx_to_scratch = np.random.randint(0, num_portions)
 
     attributes_dict['Portion ' + str(idx_to_scratch+1) + ' Scratched'] = True
@@ -138,7 +140,6 @@ def process_nft(token_id: str):
     attributes_dict['Portion ' + str(idx+1) + ' URL'] = res[0][0]
 
     # Loop through and process NFT
-    num_portions = attributes_dict['Number of Portions']
     # Initialise URLs
     urls = list()
     
