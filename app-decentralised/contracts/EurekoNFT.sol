@@ -26,9 +26,10 @@ contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
     {
         require(isReleased, "COLLECTION_NOT_RELEASED");
         require(_tokenURIs[tokenId].length > 0, "TOKEN_NOT_FOUND");
-        require(_exists(tokenId), "TOKEN_MINTED");
+        require(!_exists(tokenId), "TOKEN_MINTED");
         
         _safeMint(recipient, tokenId);
+        _tokenCurrentStages[tokenId] = 0;
         return tokenId;
     }
 
