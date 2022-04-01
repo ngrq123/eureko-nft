@@ -335,7 +335,8 @@ def upload_metadata(metadata, token_id):
     # Upload the file
     s3 = boto3.resource('s3')
     try:
-        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(metadata), S3_METADATA_FOLDER + '/' + file_name)
+        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(json.dumps(metadata).encode('utf-8')), 
+            S3_METADATA_FOLDER + '/' + file_name)
     except botocore.exceptions.ClientError as e:
         print(e)
         return ""
