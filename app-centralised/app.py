@@ -180,10 +180,10 @@ def load(token_id: int):
         """)
     query += ', '.join(values_list)
 
-    execute_update(query)
+    execute_command(query)
 
     return jsonify({
-        'result': 'Added ' + token_id + ' into database'
+        'result': 'Added ' + str(token_id) + ' into database'
     })
 
 
@@ -224,16 +224,18 @@ def execute_query(query: str):
         curs.execute(query)
         res = curs.fetchall()
 
+    conn.commit()
     conn.close()
     return res
 
-def execute_update(query: str):
+def execute_command(query: str):
     print(query)
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     with conn.cursor() as curs:
         curs.execute(query)
 
+    conn.commit()
     conn.close()
 
 def generate_attribute(trait_type, value, display_type=None):
