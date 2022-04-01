@@ -6,9 +6,11 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
-    mapping(uint256 => string) private _tokenURIs; // Token id to token URI
+    mapping(uint256 => string[]) private _tokenURIs; // Token id to token URI
+    mapping(uint256 => uint256) private _tokenCurrentStages;
     address private _owner;
 
     bool public isReleased; 
@@ -23,17 +25,26 @@ contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
         returns (uint256)
     {
         require(isReleased, "COLLECTION_NOT_RELEASED");
-        require(bytes(_tokenURIs[tokenId]).length > 0, "TOKEN_NOT_FOUND");
+        require(_tokenURIs[tokenId].length > 0, "TOKEN_NOT_FOUND");
         require(_exists(tokenId), "TOKEN_MINTED");
         
         _safeMint(recipient, tokenId);
-        return tokenId; // Need to return id?
+        return tokenId;
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
+        internal virtual override
+    {
+        super._beforeTokenTransfer(from, to, tokenId);
+
+        _tokenCurrentStages[tokenId] = Math.min(_tokenCurrentStages[tokenId] + 1, 
+                                                _tokenURIs[tokenId].length);
     }
 
     function royaltyInfo(uint256, uint256 salePrice) external view override(IERC2981)
         returns (address, uint256)
     {
-        return(_owner, (salePrice / 100) * 6);
+        return(_owner, (salePrice * 600) / 10000);
     }
     
     function toggleRelease() external onlyOwner {
@@ -47,15 +58,17 @@ contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
         return isReleased;
     }
 
-    function setTokenURI(uint256 tokenId, string calldata uri) external onlyOwner {
-        _tokenURIs[tokenId] = uri;
+    function setTokenURI(uint256 tokenId, string[] memory uris) external onlyOwner {
+        _tokenURIs[tokenId] = uris;
     } 
 
     function tokenURI(uint256 tokenId) public view override(ERC721)
         returns (string memory)
     {
         require(_exists(tokenId), "TOKEN_NOT_EXISTS");
-        return string(abi.encodePacked(_tokenURIs[tokenId]));
+
+        uint256 currStage = _tokenCurrentStages[tokenId];
+        return string(abi.encodePacked(_tokenURIs[tokenId][currStage]));
     }
 
     function redeem(address owner, uint256 tokenId) public
@@ -63,6 +76,10 @@ contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
     {
         uint256 num_tokens = balanceOf(owner);
         require(num_tokens > 0, "NO_TOKEN_IN_POSSESSION");
+        
+        uint256 tokenCurrStage = _tokenCurrentStages[tokenId];
+        uint256 tokenTotalStages = _tokenURIs[tokenId].length;
+        require(tokenCurrStage == tokenTotalStages - 1, "TOKEN_NOT_FULLY_REVEALED");
 
         for (uint256 idx = 0; idx < num_tokens; idx++) {
             uint256 tokenToCompare = tokenOfOwnerByIndex(owner, idx);
