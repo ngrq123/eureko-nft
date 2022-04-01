@@ -265,6 +265,11 @@ def load_image(url):
 
 
 def generate_nft(images):
+    # Resize images
+    min_width = min([i.shape[1] for i in images])
+    min_height = min([i.shape[0] for i in images])
+    images = [cv2.resize(i, (min_width, min_height)) for i in images]
+
     nrow = math.ceil(math.sqrt(len(images)))
     img_idx = 0
     nft = np.zeros((0, images[0].shape[1] * nrow, images[0].shape[2]), dtype=np.uint8)
@@ -283,6 +288,9 @@ def generate_nft(images):
                                        dtype=np.uint8)])
             nft = cv2.vconcat([nft, row_img])
     
+    # Resize NFT to 350 x 350 (OpenSea recommended)
+    nft = cv2.resize(nft, (350, 350))
+
     return nft
 
 def execute_query(query: str):
