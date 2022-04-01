@@ -1,1 +1,1 @@
-web: gunicorn eureko-nft-processing:app
+web: gunicorn app:app
