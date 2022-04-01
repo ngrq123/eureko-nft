@@ -33,8 +33,8 @@ async function showRelease() {
     });
 }
 
-async function showTokenURI() {
-  nftContract.methods.tokenURI(1)
+async function showTokenURI(tokenId) {
+  nftContract.methods.tokenURI(tokenId)
     .call(function(err, res) {
       if (err) {
         console.log(err);
@@ -46,4 +46,5 @@ async function showTokenURI() {
 
 showOwner();
 showRelease();
-showTokenURI();
+showTokenURI(1);
+showTokenURI(2);

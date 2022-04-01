@@ -8,19 +8,19 @@ const web3 = createAlchemyWeb3(API_URL)
 
 const contract = require("../artifacts/contracts/EurekoNFT.sol/EurekoNFT.json")
 
-const contractAddress = process.env.CONTRACT_ADDRESS
+const contractAddress = null // TODO: Add contract address
 const nftContract = new web3.eth.Contract(contract.abi, contractAddress)
 
-async function createTokenOne() {
-  const nonce = await web3.eth.getTransactionCount(PUBLIC_KEY, 'latest'); // Get latest nonce
+async function redeemNFT(fromAddress, tokenId) {
+  const nonce = await web3.eth.getTransactionCount(fromAddress, 'latest'); // Get latest nonce
 
   // Transaction
   const tx = {
-    'from': PUBLIC_KEY,
-    'to': contractAddress,
+    'from': fromAddress,
+    'to': "0x0000000000000000000000000000000000000000",
     'nonce': nonce,
     'gas': 500000,
-    'data': nftContract.methods.setTokenURI(1, "http://example.com").encodeABI()
+    'data': nftContract.methods.redeem(fromAddress, tokenId).encodeABI()
   };
 
   const signPromise = web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
@@ -49,4 +49,4 @@ async function createTokenOne() {
     });
 }
 
-createTokenOne();
+redeemNFT(PUBLIC_KEY, 1);
