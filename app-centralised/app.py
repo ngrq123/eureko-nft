@@ -1,3 +1,4 @@
+import enum
 import json
 import math
 import os
@@ -6,12 +7,13 @@ from urllib.error import URLError
 import cv2
 from flask import Flask
 from flask import jsonify
+from flask import request
 import numpy as np
 from pandas import value_counts
 import psycopg2
 import requests
 
-# DATABASE_URL = os.environ['DATABASE_URL']
+DATABASE_URL = os.environ['DATABASE_URL']
 
 app = Flask(__name__)
 
@@ -32,6 +34,11 @@ def create_nft(token_id: int):
         ;
     """
     res = execute_query(query)
+
+    if len(res) == 0:
+        return jsonify({
+            'error': "TOKEN_ID_NOT_EXISTS"
+        })
     
     # Test data
     # res = [
@@ -99,6 +106,88 @@ def process_nft(token_hash: str):
     return jsonify(res)
 
 
+@app.route('/load/<int:token_id>')
+def load(token_id: int):
+    query = """
+        SELECT *
+        FROM tokens
+        WHERE id = {token_id}
+        ;
+    """
+    res = execute_query(query)
+
+    if len(res) > 0:
+        return jsonify({
+            'error': "TOKEN_ID_EXISTS"
+        })
+    
+    request_dict = request.get_json(force=True)
+    
+    if 'name' not in request_dict:
+        return jsonify({
+            'error': "NAME_NOT_EXISTS"
+        })
+    
+    name = request_dict['name']
+
+    if 'description' not in request_dict:
+        return jsonify({
+            'error': "DESCRIPTION_NOT_EXISTS"
+        })
+    
+    description = request_dict['description']
+
+    if 'recommended_mint_price' not in request_dict:
+        return jsonify({
+            'error': "RECOMMENDED_MINT_PRICE_NOT_EXISTS"
+        })
+    
+    recommended_mint_price = request_dict['recommended_mint_price']
+
+    if ('url_unscratched' not in request_dict) or (len(request_dict['url_unscratched']) == 0):
+        return jsonify({
+            'error': "UNSCRATCHED_URL_NOT_EXISTS"
+        })
+
+    if ('url_scratched' not in request_dict) or (len(request_dict['url_scratched']) == 0):
+        return jsonify({
+            'error': "SCRATCHED_URL_NOT_EXISTS"
+        })
+
+    url_unscratched = request_dict['url_unscratched']
+    url_scratched = request_dict['url_scratched']
+
+    if len(url_unscratched) != len(url_scratched):
+        return jsonify({
+            'error': "URL_DIFFERENT_LENGTHS"
+        })
+    
+    query = """
+        INSERT INTO token (
+            id, 
+            part_id, 
+            token_name, 
+            token_description, 
+            token_recommended_mint_price, 
+            url_unscratched, 
+            url_scratched
+        ) VALUES 
+    """
+    
+    values_list = list()
+    for idx, (url_hidden, url_unhidden) in enumerate(zip(url_unscratched, url_scratched)):
+        values_list.append(f"""
+            ({token_id}, {idx+1}, {name}, {description}, {recommended_mint_price}, {url_hidden}, {url_unhidden})
+        """)
+    query += ', '.join(values_list)
+
+    execute_update(query)
+
+    return jsonify({
+        'result': 'Added ' + token_id + ' into database'
+    })
+
+
 def load_image(url):
     img = requests.get(url).content
     # https://stackoverflow.com/a/49517948
@@ -127,7 +216,7 @@ def generate_nft(images):
     
     return nft
 
-def execute_query(query):
+def execute_query(query: str):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     res = None
@@ -136,6 +225,14 @@ def execute_query(query):
 
     conn.close()
     return res
+
+def execute_update(query: str):
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+
+    with conn.cursor() as curs:
+        res = curs.execute(query)
+
+    conn.close()
 
 def generate_attribute(trait_type, value, display_type=None):
     attr_dict = dict()
