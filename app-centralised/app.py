@@ -9,7 +9,6 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 import numpy as np
-from pandas import value_counts
 import psycopg2
 import requests
 
@@ -29,7 +28,7 @@ def create_nft(token_id: int):
 
     query = f"""
         SELECT *
-        FROM tokens
+        FROM token
         WHERE id = {token_id}
         ;
     """
@@ -110,7 +109,7 @@ def process_nft(token_hash: str):
 def load(token_id: int):
     query = """
         SELECT *
-        FROM tokens
+        FROM token
         WHERE id = {token_id}
         ;
     """
@@ -221,7 +220,8 @@ def execute_query(query: str):
 
     res = None
     with conn.cursor() as curs:
-        res = curs.fetchall(query)
+        curs.execute(query)
+        res = curs.fetchall()
 
     conn.close()
     return res
@@ -230,7 +230,7 @@ def execute_update(query: str):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     with conn.cursor() as curs:
-        res = curs.execute(query)
+        curs.execute(query)
 
     conn.close()
 
