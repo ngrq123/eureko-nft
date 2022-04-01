@@ -56,7 +56,7 @@ def create_nft(token_id: int):
     images = [load_image(row[5]) for row in res]
     nft = generate_nft(images)
 
-    token_metadata['image'] = upload_nft(nft)
+    token_metadata['image'] = upload_nft(nft, token_id)
 
     if len(token_metadata['image']) == 0:
         return jsonify({
@@ -77,7 +77,7 @@ def create_nft(token_id: int):
     for idx in range(len(res)):
         token_metadata['attributes'].append(generate_attribute('Portion ' + str(idx+1) + ' URL', res[idx][5]))
 
-    metadata_url = upload_metadata(token_metadata)
+    metadata_url = upload_metadata(token_metadata, token_id)
 
     if len(metadata_url) == 0:
         return jsonify({
@@ -149,7 +149,7 @@ def process_nft(token_id: str):
     images = [load_image(url) for url in urls]
     nft = generate_nft(images)
 
-    new_nft_url = upload_nft(nft)
+    new_nft_url = upload_nft(nft, token_id)
 
     if len(new_nft_url) == 0:
         return jsonify({
@@ -157,7 +157,7 @@ def process_nft(token_id: str):
         })
 
     res['image'] = new_nft_url
-    metadata_url = upload_metadata(res)
+    metadata_url = upload_metadata(res, token_id)
 
     if len(metadata_url) == 0:
         return jsonify({
