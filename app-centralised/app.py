@@ -330,14 +330,14 @@ def upload_nft(image, token_id):
     return S3_BASE_URL + '/' + S3_NFT_FOLDER + '/' + file_name
 
 def upload_metadata(metadata, token_id):
-    metadata = json.dumps(metadata)
+    metadata = json.dumps(metadata).encode()
     file_name = str(token_id) + '_' + secrets.token_hex() + '.json'
     print(file_name)
 
     # Upload the file
     s3 = boto3.resource('s3')
     try:
-        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(json.dumps(metadata).encode('utf-8')), 
+        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(metadata), 
             S3_METADATA_FOLDER + '/' + file_name,
             ExtraArgs={'ACL': 'public-read'})
     except botocore.exceptions.ClientError as e:
