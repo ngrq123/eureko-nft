@@ -93,14 +93,15 @@ def create_nft(token_id: int):
 @app.route('/process/<path:token_id>')
 def process_nft(token_id: str):
     query = f"""
-        SELECT *
+        SELECT part_id, url_scratched
         FROM token
         WHERE id = {token_id}
+        ORDER BY part_id
         ;
     """
-    res = execute_query(query)
+    data = execute_query(query)
 
-    if len(res) == 0:
+    if len(data) == 0:
         return jsonify({
             'error': "TOKEN_ID_NOT_EXISTS"
         })
@@ -119,25 +120,28 @@ def process_nft(token_id: str):
 
     if attributes_dict['Percentage Scratched'] == 100:
         # No more parts to reveal
-        return jsonify(res)
+        return jsonify({
+            'error': "TOKEN_FULLY_REVEALED"
+        })
     
     num_portions = attributes_dict['Number of Portions']
 
     # Scratch NFT
     idx_to_scratch = np.random.randint(0, num_portions)
-    while (not attributes_dict['Portion ' + str(idx_to_scratch+1) + ' Scratched']):
+    while (attributes_dict['Portion ' + str(idx_to_scratch+1) + ' Scratched']):
         idx_to_scratch = np.random.randint(0, num_portions)
+    
+    attributes_dict['Portion ' + str(idx_to_scratch+1) + ' URL'] = data[idx_to_scratch][1]
 
-    attributes_dict['Portion ' + str(idx_to_scratch+1) + ' Scratched'] = True
-
-    query = f"""
-        SELECT url_scratched
-        FROM token
-        WHERE id = {token_id} AND part_id = {idx_to_scratch+1}
-        ;
-    """
-    res = execute_query(query)
-    attributes_dict['Portion ' + str(idx+1) + ' URL'] = res[0][0]
+    for obj in attributes:
+        key, value = obj["trait_type"], obj["value"]
+        if key == 'Percentage Scratched':
+            obj['value'] = (attributes_dict['Percentage Scratched'] * num_portions + 1) / num_portions
+        elif key == 'Portion ' + str(idx_to_scratch+1) + ' Scratched':
+            obj['value'] = True
+        elif key == 'Portion ' + str(idx_to_scratch+1) + ' URL':
+            obj['value'] = data[idx_to_scratch][1]
+            
 
     # Loop through and process NFT
     # Initialise URLs
