@@ -176,7 +176,7 @@ def load(token_id: int):
     values_list = list()
     for idx, (url_hidden, url_unhidden) in enumerate(zip(url_unscratched, url_scratched)):
         values_list.append(f"""
-            ({token_id}, {idx+1}, {name}, {description}, {recommended_mint_price}, {url_hidden}, {url_unhidden})
+            ({token_id}, {idx+1}, '{name}', '{description}', {recommended_mint_price}, '{url_hidden}', '{url_unhidden}')
         """)
     query += ', '.join(values_list)
 
@@ -216,6 +216,7 @@ def generate_nft(images):
     return nft
 
 def execute_query(query: str):
+    print(query)
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     res = None
@@ -227,6 +228,7 @@ def execute_query(query: str):
     return res
 
 def execute_update(query: str):
+    print(query)
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     with conn.cursor() as curs:
