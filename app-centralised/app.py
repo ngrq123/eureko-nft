@@ -107,7 +107,7 @@ def process_nft(token_hash: str):
 
 @app.route('/load/<int:token_id>')
 def load(token_id: int):
-    query = """
+    query = f"""
         SELECT *
         FROM token
         WHERE id = {token_id}
