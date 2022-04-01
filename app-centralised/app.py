@@ -1,9 +1,11 @@
-import enum
+import io
 import json
 import math
 import os
-from urllib.error import URLError
+import secrets
 
+import botocore
+import boto3
 import cv2
 from flask import Flask
 from flask import jsonify
@@ -13,6 +15,9 @@ import psycopg2
 import requests
 
 DATABASE_URL = os.environ['DATABASE_URL']
+S3_BUCKET = os.environ['S3_BUCKET']
+S3_METADATA_FOLDER = os.environ['S3_METADATA_FOLDER']
+S3_BASE_URL = os.environ['S3_BASE_URL']
 
 app = Flask(__name__)
 
@@ -50,8 +55,13 @@ def create_nft(token_id: int):
     images = [load_image(row[5]) for row in res]
     nft = generate_nft(images)
 
-    # TODO: Upload NFT and get URL
-    token_metadata['image'] = 'http://example.com'
+    token_metadata['image'] = upload_nft(nft)
+
+    if len(token_metadata['image']) == 0:
+        return jsonify({
+            'error': "NFT_UPLOAD_FAILED"
+        })
+
     token_metadata['name'] = res[0][2]
     token_metadata['description'] = res[0][3]
 
@@ -100,7 +110,12 @@ def process_nft(token_hash: str):
     images = [load_image(url) for url in urls]
     nft = generate_nft(images)
 
-    # TODO: Upload NFT and update image and external URL
+    new_nft_url = upload_nft(nft)
+
+    if len(new_nft_url) == 0:
+        return jsonify({
+            'error': "NFT_UPLOAD_FAILED"
+        })
     
     return jsonify(res)
 
@@ -248,3 +263,16 @@ def generate_attribute(trait_type, value, display_type=None):
     attr_dict['value'] = value
     
     return attr_dict
+
+def upload_nft(image, token_id):
+    image_bytes = cv2.imencode('.png', image)[1].tobytes()
+    file_name = str(token_id) + '_' + secrets.token_hex() + '.png'
+    print(file_name)
+    # Upload the file
+    s3 = boto3.resource('s3')
+    try:
+        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(image_bytes), S3_METADATA_FOLDER + '/' + file_name)
+    except botocore.exceptions.ClientError as e:
+        print(e)
+        return ""
+    return S3_BASE_URL + file_name
