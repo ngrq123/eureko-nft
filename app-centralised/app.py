@@ -17,6 +17,7 @@ import requests
 DATABASE_URL = os.environ['DATABASE_URL']
 S3_BUCKET = os.environ['S3_BUCKET']
 S3_METADATA_FOLDER = os.environ['S3_METADATA_FOLDER']
+S3_NFT_FOLDER = os.environ['S3_NFT_FOLDER']
 S3_BASE_URL = os.environ['S3_BASE_URL']
 
 app = Flask(__name__)
@@ -59,7 +60,7 @@ def create_nft(token_id: int):
 
     if len(token_metadata['image']) == 0:
         return jsonify({
-            'error': "NFT_UPLOAD_FAILED"
+            'error': 'NFT_UPLOAD_FAILED'
         })
 
     token_metadata['name'] = res[0][2]
@@ -75,14 +76,38 @@ def create_nft(token_id: int):
 
     for idx in range(len(res)):
         token_metadata['attributes'].append(generate_attribute('Portion ' + str(idx+1) + ' URL', res[idx][5]))
+
+    metadata_url = upload_metadata(token_metadata)
+
+    if len(metadata_url) == 0:
+        return jsonify({
+            'error': 'METADATA_UPLOAD_FAILED'
+        })
+
     
-    return jsonify(token_metadata)
+    return jsonify({
+        'metadata_url': metadata_url
+    })
 
 
-@app.route('/process/<path:token_hash>')
-def process_nft(token_hash: str):
-    IPFS_URL = os.getenv('IPFS_URL')
-    res = requests.get(IPFS_URL + token_hash)
+@app.route('/process/<path:token_id>')
+def process_nft(token_id: str):
+    query = f"""
+        SELECT *
+        FROM token
+        WHERE id = {token_id}
+        ;
+    """
+    res = execute_query(query)
+
+    if len(res) == 0:
+        return jsonify({
+            'error': "TOKEN_ID_NOT_EXISTS"
+        })
+    
+    request_dict = request.get_json(force=True)
+    metadata_url = request_dict['metadata_url']
+    res = requests.get(metadata_url)
     res = json.loads(res.content)
     attributes = res['attributes']
 
@@ -92,18 +117,32 @@ def process_nft(token_hash: str):
         key, value = obj["trait_type"], obj["value"]
         attributes_dict[key] = value
 
+    if attributes_dict['Percentage Scratched'] == 100:
+        # No more parts to reveal
+        return jsonify(res)
+    
+    # Scratch NFT
+    idx_to_scratch = np.random.randint(0, num_portions)
+    while (not attributes_dict['Portion ' + str(idx+1) + ' Scratched']):
+        idx_to_scratch = np.random.randint(0, num_portions)
+
+    attributes_dict['Portion ' + str(idx_to_scratch+1) + ' Scratched'] = True
+
+    query = f"""
+        SELECT url_scratched
+        FROM token
+        WHERE id = {token_id} AND part_id = {idx_to_scratch+1}
+        ;
+    """
+    res = execute_query(query)
+    attributes_dict['Portion ' + str(idx+1) + ' URL'] = res[0][0]
+
     # Loop through and process NFT
     num_portions = attributes_dict['Number of Portions']
     # Initialise URLs
     urls = list()
-
+    
     for idx in range(num_portions):
-        # Check state
-        is_scratched = attributes_dict['Portion ' + str(idx+1) + ' Scratched']
-        if (is_scratched):
-            # TODO: Update URL
-            # attributes_dict['Portion ' + str(idx+1) + ' URL']
-            pass
         # Get image URL
         urls.append(attributes_dict['Portion ' + str(idx+1) + ' URL'])
 
@@ -114,10 +153,21 @@ def process_nft(token_hash: str):
 
     if len(new_nft_url) == 0:
         return jsonify({
-            'error': "NFT_UPLOAD_FAILED"
+            'error': 'NFT_UPLOAD_FAILED'
         })
+
+    res['image'] = new_nft_url
+    metadata_url = upload_metadata(res)
+
+    if len(metadata_url) == 0:
+        return jsonify({
+            'error': 'METADATA_UPLOAD_FAILED'
+        })
+
     
-    return jsonify(res)
+    return jsonify({
+        'metadata_url': metadata_url
+    })
 
 
 @app.route('/load/<int:token_id>')
@@ -271,8 +321,22 @@ def upload_nft(image, token_id):
     # Upload the file
     s3 = boto3.resource('s3')
     try:
-        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(image_bytes), S3_METADATA_FOLDER + '/' + file_name)
+        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(image_bytes), S3_NFT_FOLDER + '/' + file_name)
     except botocore.exceptions.ClientError as e:
         print(e)
         return ""
-    return S3_BASE_URL + file_name
+    return S3_BASE_URL + '/' + S3_NFT_FOLDER + '/' + file_name
+
+def upload_metadata(metadata, token_id):
+    metadata = json.dumps(metadata)
+    file_name = str(token_id) + '_' + secrets.token_hex() + '.json'
+    print(file_name)
+
+    # Upload the file
+    s3 = boto3.resource('s3')
+    try:
+        s3.Bucket(S3_BUCKET).upload_fileobj(io.BytesIO(metadata), S3_METADATA_FOLDER + '/' + file_name)
+    except botocore.exceptions.ClientError as e:
+        print(e)
+        return ""
+    return S3_BASE_URL + '/' + S3_METADATA_FOLDER + '/' + file_name
