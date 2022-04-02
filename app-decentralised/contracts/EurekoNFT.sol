@@ -39,7 +39,7 @@ contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
         super._beforeTokenTransfer(from, to, tokenId);
 
         _tokenCurrentStages[tokenId] = Math.min(_tokenCurrentStages[tokenId] + 1, 
-                                                _tokenURIs[tokenId].length);
+                                                _tokenURIs[tokenId].length - 1);
     }
 
     function royaltyInfo(uint256, uint256 salePrice) external view override(IERC2981)
@@ -83,8 +83,8 @@ contract EurekoNFT is ERC721Enumerable, Ownable, IERC2981 {
         require(num_tokens > 0, "NO_TOKEN_IN_POSSESSION");
         
         uint256 tokenCurrStage = _tokenCurrentStages[tokenId];
-        uint256 tokenTotalStages = _tokenURIs[tokenId].length;
-        require(tokenCurrStage == tokenTotalStages - 1, "TOKEN_NOT_FULLY_REVEALED");
+        uint256 tokenTotalStages = _tokenURIs[tokenId].length - 1;
+        require(tokenCurrStage == tokenTotalStages, "TOKEN_NOT_FULLY_REVEALED");
 
         for (uint256 idx = 0; idx < num_tokens; idx++) {
             uint256 tokenToCompare = tokenOfOwnerByIndex(owner, idx);
