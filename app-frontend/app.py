@@ -11,11 +11,13 @@ load_dotenv()
 PRIVATE_KEY=os.getenv('PRIVATE_KEY')
 PUBLIC_KEY=os.getenv('PUBLIC_KEY')
 CONTRACT_ADDRESS=os.getenv('CONTRACT_ADDRESS')
+ABI_JSON=os.getenv('ABI_JSON')
 
 w3 = Web3(Web3.HTTPProvider('https://eth-rinkeby.alchemyapi.io/v2/1QFGnc3guOeSJ7PcxZmM-Xn68HwjYdu5'))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-abi = json.loads(open('./abi.json').read())
+abi = json.loads(ABI_JSON)
+print(abi)
 
 nftContract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=abi)
 
