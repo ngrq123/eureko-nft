@@ -160,6 +160,14 @@ We will be looking into transiting from S3 to IPFS to meet the best practices fo
 
 As part of our strategy development,we will look into exploring the usage of unrevealed/non redeemed NFTs to be exchanged for points or new tokens to promote the longevity of the future games.
 
+## Whitepaper
+
+https://github.com/ngrq123/eureko-nft/raw/main/whitepaper_eureko.pdf
+
+## Pitch Video
+
+https://youtu.be/ifUAnbUPOh0
+
 ## GitHub Repo
 
 https://github.com/ngrq123/eureko-nft
