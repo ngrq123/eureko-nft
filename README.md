@@ -63,9 +63,7 @@ As participants buy and sell the Eureko NFTs, the underlying prize hidden behind
 
 ![](images/nft_lifecycle.png)
 
-The way in which the picture gets unveiled is dynamic. 
-1. Random order
-2. Token have different number of parts - pre-determined on creation based on prize tier
+The portions get unrevealed in a random order, such that it is not predictable. Each token also has a different number of parts, which is predetermined on creation based on the prize tier.
 
 Partially revealed tokens continue to have a thin layer mask over them, to keep participants guessing.
 
@@ -156,9 +154,23 @@ Otherwise,  the probability of reveal $P(r)$ will be calculated based on the fol
 
 $P(r) = hq( \frac{p-p_m}{p_m} + \frac{x_r}{X_r} + \frac{d}{D} )$
 
+## Future Work
+
+We will be looking into transiting from S3 to IPFS to meet the best practices for storing and addressing data for NFTs. Also, there is room for improvement in the update of metadata and we would like to explore implementing listeners to observe the change of states to update the metadata dynamically. 
+
+As part of our strategy development,we will look into exploring the usage of unrevealed/non redeemed NFTs to be exchanged for points or new tokens to promote the longevity of the future games.
+
+## GitHub Repo
+
+https://github.com/ngrq123/eureko-nft
 
 ## References
 
-NFT Tutorial Series - ethereum.org: https://ethereum.org/en/developers/tutorials/how-to-write-and-deploy-an-nft/ 
-
-Metadata Standards - OpenSea: https://docs.opensea.io/docs/metadata-standards
+- https://ethereum.org/en/developers/tutorials/how-to-write-and-deploy-an-nft/ 
+- https://docs.opensea.io/docs/metadata-standards
+- https://hbr.org/2022/02/how-your-brand-should-use-nfts
+- https://www.cnbc.com/2017/03/20/digital-ads-more-expensive-but-reaching-fewer-consumers.html
+- https://www.forbes.com/sites/forbesfinancecouncil/2018/10/25/what-percentage-of-small-businesses-fail-and-how-can-you-avoid-being-one-of-them/?sh=7a69a39843b5
+- https://www.forbes.com/sites/forbesagencycouncil/2022/03/09/using-nfts-to-grow-and-fund-your-small-business/?sh=70a534b85664
+- https://etherscan.io/address/0x219b8ab790decc32444a6600971c7c3718252539#code 
+- https://github.com/HashLips/hashlips_nft_minting_dapp
