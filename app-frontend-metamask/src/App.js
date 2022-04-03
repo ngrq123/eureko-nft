@@ -20,11 +20,20 @@ function App() {
   const blockchain = useSelector((state) => state.blockchain);
   const data = useSelector((state) => state.data);
   const [feedback, setFeedback] = useState("Come and join Eureko!");
+  const [redeemFeedback, setRedeemFeedback] = useState("Please input your NFT ID");
   const [claimingNft, setClaimingNFT] = useState(false);
   const [redeemingNFT, setRedeemingNFT] = useState(false);
   const urlimage = "./img/logo.png"
-  const mintCounter = 24
-  const redeemCounter = 24
+  const [redeemdata,setData] = useState (null)
+  const mintCounter = 1
+  const redeemCounter = 1
+
+  function getData (val)
+  {
+
+    setData(val.target.value)
+  }
+
 
   const claimNFTs = (_amount) => {
 
@@ -46,22 +55,29 @@ function App() {
   };
   const redeemNFTs = (_amount) => {
 
+    if(!redeemdata){
+      setRedeemFeedback("Error! Please put in the right ID");
+      setRedeemingNFT(false);
+      return
+    }
+
     setRedeemingNFT(true);
-    blockchain.smartContract.methods.redeem(blockchain.account, redeemCounter++).send({
+    blockchain.smartContract.methods.redeem(blockchain.account, redeemdata).send({
 
       from: blockchain.account
 
     }).once("error", (err) => {
       console.log(err);
-      setFeedback("Error");
+      setRedeemFeedback("Error Please put in the right ID");
       setRedeemingNFT(false);
 
     }).then((receipt) => {
-      setFeedback("You have succesfully redeemed a NFT");
+      setRedeemFeedback("You have succesfully redeemed a NFT");
       setRedeemingNFT(false);
     });
 
   };
+
 
 
   useEffect(() => {
@@ -119,7 +135,7 @@ function App() {
           <s.TextDescription style={{ textAlign: "center" }}>
             {feedback}
           </s.TextDescription>
-          <s.SpacerSmall />
+          <s.SpacerXSmall />
 
           <s.SpacerSmall />
           <StyledButton
@@ -133,7 +149,14 @@ function App() {
 
           </StyledButton>
           <s.SpacerSmall />
-
+          <s.SpacerSmall />
+          <s.TextDescription style={{ textAlign: "center" }}>
+            {"Redeem Your Revealed NFT Today!"}
+          </s.TextDescription>
+          <s.TextDescription style={{ textAlign: "center" }}>
+            {redeemFeedback}
+          </s.TextDescription>
+          <input type = "text" onChange = {getData}/>
           <s.SpacerSmall />
           <StyledButton
             disabled = {redeemingNFT ? 1 : 0}
@@ -142,7 +165,7 @@ function App() {
               redeemNFTs(1);
             }}
           >
-            {claimingNft ? "Busy Redeeming" : "Redeem 1 " + data.name }
+            {redeemingNFT ? "Busy Redeeming" : "Redeem your " + data.name }
 
           </StyledButton>
           <s.SpacerSmall />
