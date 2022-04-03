@@ -25,8 +25,8 @@ function App() {
   const [redeemingNFT, setRedeemingNFT] = useState(false);
   const urlimage = "./img/logo.png"
   const [redeemdata,setData] = useState (null)
-  const mintCounter = 1
-  const redeemCounter = 1
+  var mintCounter = 1
+  var redeemCounter = 1
 
   function getData (val)
   {
@@ -55,7 +55,7 @@ function App() {
   };
   const redeemNFTs = (_amount) => {
 
-    if(!redeemdata){
+    if(!redeemdata || !(Number.isInteger(redeemdata))){
       setRedeemFeedback("Error! Please put in the right ID");
       setRedeemingNFT(false);
       return
