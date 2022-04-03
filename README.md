@@ -152,7 +152,7 @@ Otherwise,  the probability of reveal $P(r)$ will be calculated based on the fol
 - "Eureko Moment" Happy Hour event $h$
 - Randomness factor $q$
 
-$P(r) = hq( \frac{p-p_m}{p_m} + \frac{x_r}{X_r} + \frac{d}{D} )$
+![](images/formula.png)
 
 ## Future Work
 
